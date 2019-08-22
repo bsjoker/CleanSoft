@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "894077190826",
+    "firebase_url": "https://ru-alphanix-cleansoft.firebaseio.com",
+    "project_id": "ru-alphanix-cleansoft",
+    "storage_bucket": "ru-alphanix-cleansoft.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:894077190826:android:f8267433d02c776b",
+        "android_client_info": {
+          "package_name": "ru.alphanix.cleansoft"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "894077190826-318faf87fofh65qp3tktst5hikgcjunc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ru.alphanix.cleansoft",
+            "certificate_hash": "fb598fed967a79ee002e5dc6ea86ece399a9e0cd"
+          }
+        },
+        {
+          "client_id": "894077190826-prrpgid10podj7kvi5lqrmitfnmrejus.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4LoOPdqneSLpfgKsHdjr83eAyudbyUoU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "894077190826-prrpgid10podj7kvi5lqrmitfnmrejus.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#192836</color>
+    <color name="colorAccent">#3CE242</color>
+    <color name="blue">#192836</color>
+    <color name="white">#ffffff</color>
+    <color name="orange">#F03309</color>
+    <color name="gray">#707070</color>
+
+    <color name="apps_list_system_memory">#f57259</color>
+    <color name="apps_list_cache_memory">#ff0044</color>
+    <color name="apps_list_free_memory">#ffffff</color>
+    <color name="dotted_line">@color/apps_list_free_memory</color>
+    <color name="design_snackbar_background_color">@color/colorPrimary</color>
+</resources>
