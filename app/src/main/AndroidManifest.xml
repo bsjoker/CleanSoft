@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="ru.alphanix.cleansoft">
 
-    <uses-sdk android:minSdkVersion="17" android:targetSdkVersion="28"/>
     <uses-permission android:name="android.permission.GET_PACKAGE_SIZE"/>
     <permission android:name="android.permission.CLEAR_APP_CACHE" android:protectionLevel="normal|signature|system"/>
     <permission android:name="android.permission.CLEAR_APP_USER_DATA" android:protectionLevel="normal|signature|system"/>

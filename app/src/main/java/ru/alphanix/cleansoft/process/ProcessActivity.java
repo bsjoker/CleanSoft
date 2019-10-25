@@ -143,8 +143,8 @@ public class ProcessActivity extends BaseActivity {
         mInterstitialAd.setAdUnitId(getResources().getString(R.string.intersentialID));
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
 
-        nativeAd = new NativeAd(this, "486963001835819_506222603243192");
-        //nativeAd = new NativeAd(this, "VID_HD_16_9_46S_LINK#486963001835819_506222603243192");
+        //nativeAd = new NativeAd(this, "486963001835819_506222603243192");
+        nativeAd = new NativeAd(this, "VID_HD_16_9_46S_LINK#486963001835819_506222603243192");
         nativeAd.setAdListener(new NativeAdListener() {
             @Override
             public void onMediaDownloaded(Ad ad) {}
