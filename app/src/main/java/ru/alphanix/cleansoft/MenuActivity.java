@@ -4,9 +4,7 @@ import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,7 +13,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class MenuActivity extends AppCompatActivity implements View.OnClickListener{
+import ru.alphanix.cleansoft.base.BaseActivity;
+import ru.alphanix.cleansoft.mainMenu.MainMenuActivity;
+import ru.alphanix.cleansoft.setting.SettingActivity;
+
+public class MenuActivity extends BaseActivity implements View.OnClickListener{
     ImageView wave, wave2, wave2d, wave3, wave4, wave4d;
     LinearLayout mLlAppInfo, mLlSetting, mLlPilicy;
     TextView tvTitleMenu;

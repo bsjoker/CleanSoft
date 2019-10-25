@@ -1,10 +1,12 @@
-package ru.alphanix.cleansoft;
+package ru.alphanix.cleansoft.Utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
 import java.io.InvalidClassException;
+
+import ru.alphanix.cleansoft.App.App;
 
 /**
  * Created by 1 on 18.02.2018.

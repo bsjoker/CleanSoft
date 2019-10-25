@@ -3,43 +3,27 @@ package ru.alphanix.cleansoft;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.facebook.ads.Ad;
-import com.facebook.ads.AdError;
-import com.facebook.ads.AdIconView;
-import com.facebook.ads.AdOptionsView;
 import com.facebook.ads.AudienceNetworkAds;
-import com.facebook.ads.MediaView;
-import com.facebook.ads.NativeAd;
-import com.facebook.ads.NativeAdLayout;
-import com.facebook.ads.NativeAdListener;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -47,18 +31,19 @@ import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
 
 import java.io.InvalidClassException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import ru.alphanix.cleansoft.Utils.PreferencesHelper;
+import ru.alphanix.cleansoft.base.BaseActivity;
+import ru.alphanix.cleansoft.mainMenu.MainMenuActivity;
 import ru.alphanix.cleansoft.widget.Sendmail;
 
-public class ProcessActivityNew extends AppCompatActivity {
+public class ProcessActivityNew extends BaseActivity {
     @BindView(R.id.progress)
     ProgressBar pbCircle;
 
@@ -248,53 +233,6 @@ public class ProcessActivityNew extends AppCompatActivity {
             }
         });
     }
-
-//    private void inflateAd(NativeAd nativeAd) {
-//
-//        nativeAd.unregisterView();
-//
-//        // Add the Ad view into the ad container.
-//        nativeAdLayout = findViewById(R.id.native_ad_container);
-//        LayoutInflater inflater = LayoutInflater.from(ProcessActivityNew.this);
-//        // Inflate the Ad view.  The layout referenced should be the one you created in the last step.
-//        adView = (LinearLayout) inflater.inflate(R.layout.native_ad_layout, nativeAdLayout, false);
-//        nativeAdLayout.addView(adView);
-//
-//        // Add the AdOptionsView
-//        LinearLayout adChoicesContainer = findViewById(R.id.ad_choices_container);
-//        AdOptionsView adOptionsView = new AdOptionsView(ProcessActivityNew.this, nativeAd, nativeAdLayout);
-//        adChoicesContainer.removeAllViews();
-//        adChoicesContainer.addView(adOptionsView, 0);
-//
-//        // Create native UI using the ad metadata.
-//        AdIconView nativeAdIcon = adView.findViewById(R.id.native_ad_icon);
-//        TextView nativeAdTitle = adView.findViewById(R.id.native_ad_title);
-//        MediaView nativeAdMedia = adView.findViewById(R.id.native_ad_media);
-//        TextView nativeAdSocialContext = adView.findViewById(R.id.native_ad_social_context);
-//        TextView nativeAdBody = adView.findViewById(R.id.native_ad_body);
-//        TextView sponsoredLabel = adView.findViewById(R.id.native_ad_sponsored_label);
-//        Button nativeAdCallToAction = adView.findViewById(R.id.native_ad_call_to_action);
-//
-//        // Set the Text.
-//        nativeAdTitle.setText(nativeAd.getAdvertiserName());
-//        nativeAdBody.setText(nativeAd.getAdBodyText());
-//        nativeAdSocialContext.setText(nativeAd.getAdSocialContext());
-//        nativeAdCallToAction.setVisibility(nativeAd.hasCallToAction() ? View.VISIBLE : View.INVISIBLE);
-//        nativeAdCallToAction.setText(nativeAd.getAdCallToAction());
-//        sponsoredLabel.setText(nativeAd.getSponsoredTranslation());
-//
-//        // Create a list of clickable views
-//        List<View> clickableViews = new ArrayList<>();
-//        clickableViews.add(nativeAdTitle);
-//        clickableViews.add(nativeAdCallToAction);
-//
-//        // Register the Title and CTA button to listen for clicks.
-//        nativeAd.registerViewForInteraction(
-//                adView,
-//                nativeAdMedia,
-//                nativeAdIcon,
-//                clickableViews);
-//    }
 
     private void startIconAnimation(int i) {
         Drawable icon = null;

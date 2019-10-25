@@ -1,19 +1,13 @@
-package ru.alphanix.cleansoft;
+package ru.alphanix.cleansoft.boosting;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.format.Formatter;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,18 +24,25 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import ru.alphanix.cleansoft.App.App;
+import ru.alphanix.cleansoft.MenuActivity;
+import ru.alphanix.cleansoft.Utils.LocaleHelper;
+import ru.alphanix.cleansoft.base.BaseActivity;
+import ru.alphanix.cleansoft.process.ProcessActivity;
+import ru.alphanix.cleansoft.R;
 
-public class BoostActivity extends AppCompatActivity{
+public class BoostActivity extends BaseActivity {
     private final static String TAG = "BoostActivity";
+    @Inject
+    BoostActivityPresenter presenter;
+
     @BindView(R.id.pb_horizontalCPUred)
     ProgressBar pbHorizontalRAMred;
 
@@ -70,19 +71,18 @@ public class BoostActivity extends AppCompatActivity{
     Toolbar mActionBarToolbar;
 
     private Unbinder mUnbinder;
-    private List<ApplicationInfo> packagesRun;
-    ArrayList<String> packageNames = new ArrayList<>();
     ArrayList<String> packageNamesForKills = new ArrayList<>();
-    ArrayList<String> appNames = new ArrayList<>();
-    ActivityManager am;
     private AdView mAdView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_boost);
-
         mUnbinder = ButterKnife.bind(this);
+
+        BoostActivityComponent boostActivityComponent = (BoostActivityComponent) App.get(this)
+                .getComponentsHolder().getActivityComponent(getClass(), new BoostActivityModule(this));
+        boostActivityComponent.inject(this);
 
         MobileAds.initialize(this, getResources().getString(R.string.appID));
         mAdView = findViewById(R.id.adView);
@@ -99,21 +99,16 @@ public class BoostActivity extends AppCompatActivity{
             }
         });
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+    }
 
-        Integer percentRAM = (int) calculateRAMMemory();
-
-        if (percentRAM>50) {
-            showProgress(pbHorizontalRAMred, 1500, 2000, percentRAM);
-            showProgress(pbHorizontalRAMgreen, 0, 3500, percentRAM - (percentRAM-50));
-        } else {
-            showProgress(pbHorizontalRAMred, 0, 3500, percentRAM);
-            showProgress(pbHorizontalRAMgreen, 0, 3500, percentRAM);
+    public void fillListApps(ArrayList<String> appNames, final ArrayList<String> packageNames) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_multiple_choice, appNames);
+        lvApp.setAdapter(adapter);
+        for ( int i=0; i < appNames.size(); i++) {
+            packageNamesForKills.add(packageNames.get(i));
+            lvApp.setItemChecked(i, true);
         }
-
-        am = (ActivityManager) getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
-
-        fillListApps(am);
-
         lvApp.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -130,62 +125,24 @@ public class BoostActivity extends AppCompatActivity{
         });
     }
 
-    private void fillListApps(ActivityManager am) {
-
-        PackageManager pm = getApplicationContext().getPackageManager();
-        packagesRun = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-
-        for (ApplicationInfo packageInfo : packagesRun) {
-            boolean system = (packageInfo.flags & packageInfo.FLAG_SYSTEM) > 0;
-            boolean stoped = (packageInfo.flags & packageInfo.FLAG_STOPPED) > 0;
-            //system apps! get out
-            if (!stoped && !system) {
-                packageNames.add(packageInfo.packageName.toString());
-                appNames.add(packageInfo.loadLabel(pm).toString());
-                //am.killBackgroundProcesses(packageInfo.packageName);
-            }
-        }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_multiple_choice, appNames);
-        lvApp.setAdapter(adapter);
-        for ( int i=0; i < appNames.size(); i++) {
-            packageNamesForKills.add(packageNames.get(i));
-            lvApp.setItemChecked(i, true);
-        }
-    }
-
-    private void showProgress(ProgressBar pb, int delay, int duration, final int maxValue) {
+    public void showProgress(ProgressBar pb, int delay, int duration, final int maxValue) {
         ObjectAnimator animation = ObjectAnimator.ofInt(pb, "progress", 0, maxValue);
         switch (pb.getId()){
             case R.id.pb_horizontalCPUred:
                 animation.addListener(new Animator.AnimatorListener() {
                     @Override
-                    public void onAnimationStart(Animator animation) {
-
-                    }
+                    public void onAnimationStart(Animator animation) {}
 
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        tvPercentRAM.setText(String.valueOf(maxValue) + "%");
-                        int padding_in_dp = (int) (maxValue*2.5) - 60;
-                        final float scale = getResources().getDisplayMetrics().density;
-                        int padding_in_px = (int) (padding_in_dp * scale + 0.5f);
-                        llRAM.setPadding(padding_in_px,0,0, 0);
-                        tvPercentRAM.setVisibility(View.VISIBLE);
-                        tvBoostRAM.setVisibility(View.VISIBLE);
-                        tvSpaceRAM.setVisibility(View.VISIBLE);
+                        presenter.endAnimation(maxValue);
                     }
 
                     @Override
-                    public void onAnimationCancel(Animator animation) {
-
-                    }
+                    public void onAnimationCancel(Animator animation) {}
 
                     @Override
-                    public void onAnimationRepeat(Animator animation) {
-
-                    }
+                    public void onAnimationRepeat(Animator animation) {}
                 });
                 break;
         }
@@ -195,21 +152,19 @@ public class BoostActivity extends AppCompatActivity{
         animation.start();
     }
 
-    private long calculateRAMMemory() {
-        ActivityManager am = (ActivityManager) getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
-        ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
-        am.getMemoryInfo(mi);
-        tvSpaceRAM.setText(Formatter.formatFileSize(getApplicationContext(), mi.totalMem - mi.availMem) + " / " + Formatter.formatFileSize(getApplicationContext(), mi.totalMem));
-        Long percentRAMVal = Math.round(((mi.totalMem - mi.availMem) / 10737418.24) / (mi.totalMem / 1073741824.0));
-        return percentRAMVal;
+    public void setTextOnGraph(String value, String freeSpace, int padding_in_px) {
+        tvPercentRAM.setText(value);
+        tvSpaceRAM.setText(freeSpace);
+        llRAM.setPadding(padding_in_px,0,0, 0);
+        tvPercentRAM.setVisibility(View.VISIBLE);
+        tvBoostRAM.setVisibility(View.VISIBLE);
+        tvSpaceRAM.setVisibility(View.VISIBLE);
+
     }
 
     public void onClickBoost(View view) {
         String[] stringApps = packageNamesForKills.toArray(new String[0]);
-        for (String packageName : packageNamesForKills){
-            am.killBackgroundProcesses(packageName);
-            Log.i(TAG, packageName + " killed!");
-        }
+        presenter.killApps(packageNamesForKills);
 
         Bundle b = new Bundle();
         b.putStringArray("appsKey", stringApps);
@@ -228,5 +183,19 @@ public class BoostActivity extends AppCompatActivity{
             startActivity(new Intent(BoostActivity.this, MenuActivity.class));
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mUnbinder.unbind();
+        if(isFinishing()){
+            App.get(this).getComponentsHolder().releaseActivityComponent(getClass());
+        }
+    }
+
+    @Inject
+    void setActivity() {
+        presenter.setActivity(this);
     }
 }

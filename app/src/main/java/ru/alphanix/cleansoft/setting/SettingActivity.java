@@ -1,5 +1,6 @@
-package ru.alphanix.cleansoft;
+package ru.alphanix.cleansoft.setting;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -15,12 +16,23 @@ import android.widget.TextView;
 import java.io.InvalidClassException;
 import java.util.Locale;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import ru.alphanix.cleansoft.App.App;
+import ru.alphanix.cleansoft.MenuActivity;
+import ru.alphanix.cleansoft.R;
+import ru.alphanix.cleansoft.Utils.PreferencesHelper;
+
 
 public class SettingActivity extends AppCompatActivity{
     private final static String TAG = "SettingActivity";
+
+    @Inject
+    SettingActivityPresenter presenter;
+
     @BindView(R.id.curDegrees)
     TextView mCurDegrees;
 
@@ -36,16 +48,26 @@ public class SettingActivity extends AppCompatActivity{
     @BindView(R.id.includeSetting)
     Toolbar mActionBarToolbar;
 
-    Locale locale;
-    Configuration configuration;
     private String mTempDegrees;
     private Unbinder mUnbinder;
+    private Context context;
+    Locale locale;
+    Configuration configuration;
+    private String initialLocale;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
         mUnbinder = ButterKnife.bind(this);
+
+        SettingActivityComponent settingActivityComponent = (SettingActivityComponent) App.get(this)
+                .getComponentsHolder().getActivityComponent(getClass(), new SettingActivityModule(this));
+        settingActivityComponent.inject(this);
+
+//        initialLocale = LocaleHelper.getPersistedLocale();
+
+        context = getBaseContext();
 
         mActionBarToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
 
@@ -70,15 +92,11 @@ public class SettingActivity extends AppCompatActivity{
         });
     }
 
-    public void onClickChange(View view) throws InvalidClassException {
+    public void onClickChange(View view){
         mTempDegrees = (String) mCurDegrees.getText();
         mCurDegrees.setText(mTargetDegrees.getText());
         mTargetDegrees.setText(mTempDegrees);
-        if (PreferencesHelper.getSharedPreferences().getBoolean("isFahrenheit", false)){
-            PreferencesHelper.savePreference("isFahrenheit", false);
-        } else {
-            PreferencesHelper.savePreference("isFahrenheit", true);
-        }
+        presenter.clickChange();
     }
 
     public void onClickLang(View view) {
@@ -90,6 +108,8 @@ public class SettingActivity extends AppCompatActivity{
             public void onClick(DialogInterface dialog, int item) {
                 Log.i(TAG, "Item: " + item);
                 tvLang.setText(items[item]);
+                //presenter.setLocale(items, item, context);
+                //setLocale("pt");
                 try {
                     PreferencesHelper.savePreference("lang", items[item]);
                 } catch (InvalidClassException e) {
@@ -116,8 +136,8 @@ public class SettingActivity extends AppCompatActivity{
                         locale = new Locale("pt");
                         Locale.setDefault(locale);
                         configuration = new Configuration();
-                        configuration.locale = locale;
-                        getBaseContext().getResources().updateConfiguration(configuration, null);
+                        configuration.setLocale(locale);
+                        getBaseContext().getResources().updateConfiguration(configuration, getResources().getDisplayMetrics());
                         saveLang("pt");
                         break;
                     case 3:
@@ -217,11 +237,34 @@ public class SettingActivity extends AppCompatActivity{
         alert.show();
     }
 
+    void setLocale(String lang){
+        locale = new Locale(lang);
+        Locale.setDefault(locale);
+        configuration = new Configuration();
+        configuration.setLocale(locale);
+        getBaseContext().getResources().updateConfiguration(configuration, null);
+
+    }
+
     private void saveLang(String lang) {
         try {
             PreferencesHelper.savePreference("locale", lang);
         } catch (InvalidClassException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mUnbinder.unbind();
+        if(isFinishing()){
+            App.get(this).getComponentsHolder().releaseActivityComponent(getClass());
+        }
+    }
+
+    @Inject
+    void setActivity(){
+        presenter.setActivity(this);
     }
 }

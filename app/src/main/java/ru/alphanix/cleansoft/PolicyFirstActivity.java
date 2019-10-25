@@ -3,12 +3,14 @@ package ru.alphanix.cleansoft;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
-public class PolicyFirstActivity extends AppCompatActivity {
+import ru.alphanix.cleansoft.base.BaseActivity;
+import ru.alphanix.cleansoft.mainMenu.MainMenuActivity;
+
+public class PolicyFirstActivity extends BaseActivity {
     private TextView tvPolicy;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

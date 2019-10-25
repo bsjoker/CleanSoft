@@ -2,7 +2,6 @@ package ru.alphanix.cleansoft;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -12,8 +11,9 @@ import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import ru.alphanix.cleansoft.base.BaseActivity;
 
-public class PolicyActivity extends AppCompatActivity{
+public class PolicyActivity extends BaseActivity {
     @BindView(R.id.include)
     Toolbar mActionBarToolbar;
 

@@ -1,4 +1,4 @@
-package ru.alphanix.cleansoft;
+package ru.alphanix.cleansoft.process;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -7,53 +7,65 @@ import android.animation.ValueAnimator;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
+import android.support.constraint.ConstraintSet;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RatingBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.facebook.ads.*;
+import com.facebook.ads.Ad;
+import com.facebook.ads.AdError;
+import com.facebook.ads.AdIconView;
+import com.facebook.ads.AdOptionsView;
+import com.facebook.ads.MediaView;
+import com.facebook.ads.NativeAd;
+import com.facebook.ads.NativeAdLayout;
+import com.facebook.ads.NativeAdListener;
 import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
-import com.mopub.common.MoPub;
-import com.mopub.common.SdkConfiguration;
+import com.google.android.gms.ads.VideoController;
+import com.google.android.gms.ads.VideoOptions;
+import com.google.android.gms.ads.formats.NativeAdOptions;
+import com.google.android.gms.ads.formats.UnifiedNativeAd;
+import com.google.android.gms.ads.formats.UnifiedNativeAdView;
 
-import java.io.InvalidClassException;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Random;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import ru.alphanix.cleansoft.widget.Sendmail;
+import ru.alphanix.cleansoft.R;
+import ru.alphanix.cleansoft.App.App;
+import ru.alphanix.cleansoft.base.BaseActivity;
+import ru.alphanix.cleansoft.mainMenu.MainMenuActivity;
 
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-
-public class ProcessActivity extends AppCompatActivity {
+public class ProcessActivity extends BaseActivity {
     public static final String TAG = "ProcessActivity";
+
+    @Inject
+    ProcessActivityPresenter presenter;
 
     @BindView(R.id.pb_horizontal)
     ProgressBar pbHorizontal;
@@ -70,8 +82,20 @@ public class ProcessActivity extends AppCompatActivity {
     @BindView(R.id.tvProcess)
     TextView tvProcess;
 
-//    @BindView(R.id.button2)
-//    Button mButtonGo;
+    @BindView(R.id.ivCircle1)
+    ImageView mAnimCircle1;
+
+    @BindView(R.id.ivCircle2)
+    ImageView mAnimCircle2;
+
+    @BindView(R.id.ivCircle3)
+    ImageView mAnimCircle3;
+
+    @BindView(R.id.ivCircle4)
+    ImageView mAnimCircle4;
+
+    @BindView(R.id.fl_adplaceholder)
+    FrameLayout mNativeFrameLayout;
 
     @BindView(R.id.clProcess)
     ConstraintLayout mClProcess;
@@ -79,26 +103,24 @@ public class ProcessActivity extends AppCompatActivity {
     @BindView(R.id.scrollView)
     ScrollView mNativeScrollView;
 
+    @BindView(R.id.adViewRect)
+    AdView mAdView;
+
     ObjectAnimator oa;
 
     private InterstitialAd mInterstitialAd;
 
     private EditText mEtComment, mEtName, mEtEmail;
-    private int count, mPackagesForKills;
     private int progress, speed;
     private AlertDialog dialog;
-    String process = "dd";
-    private Unbinder mUnbinder;
-    private ImageView mAnimCircle1, mAnimCircle2, mAnimCircle3, mAnimCircle4;
-    private AdView mAdView;
-    private Bundle b;
-    //private Boolean isNotLoadAds = false;
 
-    Sendmail mSendmail;
+    private Unbinder mUnbinder;
+
     private NativeAdLayout nativeAdLayout;
     private LinearLayout adView;
     private NativeAd nativeAd;
-    private Date currentDatePlus4Hour;
+
+    private UnifiedNativeAd unifiedNativeAd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,22 +129,16 @@ public class ProcessActivity extends AppCompatActivity {
 
         mUnbinder = ButterKnife.bind(this);
 
-        currentDatePlus4Hour = new Date();
+        ProcessActivityComponent processActivityComponent = (ProcessActivityComponent) App.get(this)
+                .getComponentsHolder().getActivityComponent(getClass(), new ProcessActivityModule(this));
+        processActivityComponent.inject(this);
 
-        AudienceNetworkAds.initialize(this);
-
-        showProgress();
+        MobileAds.initialize(this, getResources().getString(R.string.appID));
 
 //        SdkConfiguration sdkConfiguration =
 //                new SdkConfiguration.Builder("YOUR_MOPUB_AD_UNIT_ID").build();
 //
 //        MoPub.initializeSdk(getApplicationContext(), sdkConfiguration, null);
-
-        MobileAds.initialize(this, getResources().getString(R.string.appID));
-        mAdView = findViewById(R.id.adViewRect);
-
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getResources().getString(R.string.intersentialID));
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
@@ -131,9 +147,7 @@ public class ProcessActivity extends AppCompatActivity {
         //nativeAd = new NativeAd(this, "VID_HD_16_9_46S_LINK#486963001835819_506222603243192");
         nativeAd.setAdListener(new NativeAdListener() {
             @Override
-            public void onMediaDownloaded(Ad ad) {
-
-            }
+            public void onMediaDownloaded(Ad ad) {}
 
             @Override
             public void onError(Ad ad, AdError adError) {
@@ -152,49 +166,12 @@ public class ProcessActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onAdClicked(Ad ad) {
-
-            }
+            public void onAdClicked(Ad ad) {}
 
             @Override
-            public void onLoggingImpression(Ad ad) {
-
-            }
+            public void onLoggingImpression(Ad ad) {}
         });
         nativeAd.loadAd(NativeAd.MediaCacheFlag.ALL);
-
-        b = this.getIntent().getExtras();
-
-        count = PreferencesHelper.getSharedPreferences().getInt("countStarts1", 0);
-        Log.i("TAG", "Count: " + count);
-        if (count == 3 && !PreferencesHelper.getSharedPreferences().getBoolean("isDeepLink", false)) {
-            showAlertDialog();
-        }
-
-        process = getIntent().getStringExtra("process");
-        mPackagesForKills = getIntent().getIntExtra("packagesForKills", 0);
-
-        Log.d("Proc", process);
-        switch (process) {
-            case "boost":
-                tvTitle.setText(getResources().getString(R.string.ram));
-                tvFinishText.setText(getResources().getString(R.string.memory_boosted));
-                break;
-            case "cool":
-                tvTitle.setText(getResources().getString(R.string.cpu));
-                tvFinishText.setText(getResources().getString(R.string.system_cooled));
-                break;
-            case "cache":
-                tvTitle.setText(getResources().getString(R.string.rom));
-                tvFinishText.setText(getResources().getString(R.string.system_cleared));
-                break;
-        }
-
-        try {
-            PreferencesHelper.savePreference(process, false);
-        } catch (InvalidClassException e) {
-            e.printStackTrace();
-        }
 
         mActionBarToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white);
 
@@ -202,36 +179,14 @@ public class ProcessActivity extends AppCompatActivity {
         mActionBarToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Random r = new Random();
-
-                // Устанавливает время на 4 часа вперед
-                Calendar mCalendar1 = Calendar.getInstance();
-                mCalendar1.setTimeInMillis(currentDatePlus4Hour.getTime());
-                //mCalendar1.add(Calendar.HOUR_OF_DAY, 4);
-                mCalendar1.add(Calendar.MINUTE, 5);
-                Log.d(TAG, "Time: " + mCalendar1);
-                currentDatePlus4Hour.setTime(mCalendar1.getTimeInMillis());
-                try {
-                    PreferencesHelper.savePreference("currentDatePlus4Hour", mCalendar1.getTimeInMillis());
-                } catch (InvalidClassException e) {
-                    e.printStackTrace();
-                }
-                startActivity(new Intent(ProcessActivity.this, MainMenuActivity.class).putExtra("temp", PreferencesHelper.getSharedPreferences().getInt("curTemp", 40) - r.nextInt(8)));
+                presenter.clickBackMenu();
+                //startActivity(new Intent(ProcessActivity.this, MainMenuActivity.class).putExtra("temp", PreferencesHelper.getSharedPreferences().getInt("curTemp", 40) - r.nextInt(8)));
+                startActivity(new Intent(ProcessActivity.this, MainMenuActivity.class));
                 finish();
             }
         });
 
         getSupportActionBar().setDisplayShowTitleEnabled(false);
-
-        mAnimCircle1 = findViewById(R.id.ivCircle1);
-        mAnimCircle2 = findViewById(R.id.ivCircle2);
-        mAnimCircle3 = findViewById(R.id.ivCircle3);
-        mAnimCircle4 = findViewById(R.id.ivCircle4);
-
-        startAnimation(mAnimCircle1, 360f, 2000, 0);
-        startAnimation(mAnimCircle2, -360f, 1800, 200);
-        startAnimation(mAnimCircle3, 360f, 1800, 200);
-        startAnimation(mAnimCircle4, -360f, 2000, 0);
 
         mInterstitialAd.setAdListener(new AdListener() {
             @Override
@@ -244,9 +199,31 @@ public class ProcessActivity extends AppCompatActivity {
             @Override
             public void onAdClosed() {
                 mAdView.setVisibility(View.GONE);
+                mNativeFrameLayout.setVisibility(View.GONE);
                 mNativeScrollView.setVisibility(View.VISIBLE);
+                setConstraintSetForFinishText(R.id.scrollView);
             }
         });
+    }
+
+    private void setConstraintSetForFinishText(Integer view) {
+        ConstraintSet constraintSet = new ConstraintSet();
+        ConstraintLayout constraintLayout = findViewById(R.id.lp);
+        constraintSet.clone(constraintLayout);
+        constraintSet.connect(R.id.finishText,ConstraintSet.TOP,R.id.lp,ConstraintSet.TOP,8);
+        constraintSet.connect(R.id.finishText,ConstraintSet.BOTTOM,view,ConstraintSet.TOP,8);
+        constraintSet.applyTo(constraintLayout);
+    }
+
+    public void setTitleAndFinishText(String mTitle, String mFinishText) {
+        tvTitle.setText(mTitle);
+        tvFinishText.setText(mFinishText);
+    }
+
+    public void showAdMobAds(){
+        mAdView.setVisibility(View.VISIBLE);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
     }
 
     private void inflateAd(NativeAd nativeAd) {
@@ -296,7 +273,159 @@ public class ProcessActivity extends AppCompatActivity {
                 clickableViews);
     }
 
-    private void startAnimation(final ImageView mAnimCircle, float endDegree, int animDuration, long startDelay) {
+    public void refreshAd() {
+        mNativeFrameLayout.setVisibility(View.VISIBLE);
+        AdLoader.Builder builder = new AdLoader.Builder(this, getResources().getString(R.string.nativeADMOB_AD_UNIT_ID_finish));
+
+        builder.forUnifiedNativeAd(new UnifiedNativeAd.OnUnifiedNativeAdLoadedListener() {
+            // OnUnifiedNativeAdLoadedListener implementation.
+            @Override
+            public void onUnifiedNativeAdLoaded(UnifiedNativeAd unifiedNativeAdLocal) {
+                // You must call destroy on old ads when you are done with them,
+                // otherwise you will have a memory leak.
+                if (unifiedNativeAd != null) {
+                    unifiedNativeAd.destroy();
+                }
+                unifiedNativeAd = unifiedNativeAdLocal;
+                FrameLayout frameLayout =
+                        findViewById(R.id.fl_adplaceholder);
+                UnifiedNativeAdView adView = (UnifiedNativeAdView) getLayoutInflater()
+                        .inflate(R.layout.ad_unified, null);
+                populateUnifiedNativeAdView(unifiedNativeAdLocal, adView);
+                frameLayout.removeAllViews();
+                frameLayout.addView(adView);
+            }
+
+        });
+
+        VideoOptions videoOptions = new VideoOptions.Builder()
+                .setStartMuted(true)
+                .build();
+
+        NativeAdOptions adOptions = new NativeAdOptions.Builder()
+                .setVideoOptions(videoOptions)
+                .build();
+
+        builder.withNativeAdOptions(adOptions);
+
+        AdLoader adLoader = builder.withAdListener(new AdListener() {
+            @Override
+            public void onAdFailedToLoad(int errorCode) {
+                Toast.makeText(ProcessActivity.this, "Failed to load native ad: "
+                        + errorCode, Toast.LENGTH_SHORT).show();
+            }
+        }).build();
+
+        adLoader.loadAd(new AdRequest.Builder().build());
+    }
+
+    /**
+     * Populates a {@link UnifiedNativeAdView} object with data from a given
+     * {@link UnifiedNativeAd}.
+     *
+     * @param nativeAd the object containing the ad's assets
+     * @param adView          the view to be populated
+     */
+    private void populateUnifiedNativeAdView(UnifiedNativeAd nativeAd, UnifiedNativeAdView adView) {
+        // Set the media view. Media content will be automatically populated in the media view once
+        // adView.setNativeAd() is called.
+        com.google.android.gms.ads.formats.MediaView mediaView = adView.findViewById(R.id.ad_media);
+        adView.setMediaView(mediaView);
+
+        // Set other ad assets.
+        adView.setHeadlineView(adView.findViewById(R.id.ad_headline));
+        adView.setBodyView(adView.findViewById(R.id.ad_body));
+        adView.setCallToActionView(adView.findViewById(R.id.ad_call_to_action));
+        adView.setIconView(adView.findViewById(R.id.ad_app_icon));
+        adView.setPriceView(adView.findViewById(R.id.ad_price));
+        adView.setStarRatingView(adView.findViewById(R.id.ad_stars));
+        adView.setStoreView(adView.findViewById(R.id.ad_store));
+        adView.setAdvertiserView(adView.findViewById(R.id.ad_advertiser));
+
+        // The headline is guaranteed to be in every UnifiedNativeAd.
+        ((TextView) adView.getHeadlineView()).setText(nativeAd.getHeadline());
+
+        // These assets aren't guaranteed to be in every UnifiedNativeAd, so it's important to
+        // check before trying to display them.
+        if (nativeAd.getBody() == null) {
+            adView.getBodyView().setVisibility(View.INVISIBLE);
+        } else {
+            adView.getBodyView().setVisibility(View.VISIBLE);
+            ((TextView) adView.getBodyView()).setText(nativeAd.getBody());
+        }
+
+        if (nativeAd.getCallToAction() == null) {
+            adView.getCallToActionView().setVisibility(View.INVISIBLE);
+        } else {
+            adView.getCallToActionView().setVisibility(View.VISIBLE);
+            ((Button) adView.getCallToActionView()).setText(nativeAd.getCallToAction());
+        }
+
+        if (nativeAd.getIcon() == null) {
+            adView.getIconView().setVisibility(View.GONE);
+        } else {
+            ((ImageView) adView.getIconView()).setImageDrawable(
+                    nativeAd.getIcon().getDrawable());
+            adView.getIconView().setVisibility(View.VISIBLE);
+        }
+
+        if (nativeAd.getPrice() == null) {
+            adView.getPriceView().setVisibility(View.INVISIBLE);
+        } else {
+            adView.getPriceView().setVisibility(View.VISIBLE);
+            ((TextView) adView.getPriceView()).setText(nativeAd.getPrice());
+        }
+
+        if (nativeAd.getStore() == null) {
+            adView.getStoreView().setVisibility(View.INVISIBLE);
+        } else {
+            adView.getStoreView().setVisibility(View.VISIBLE);
+            ((TextView) adView.getStoreView()).setText(nativeAd.getStore());
+        }
+
+        if (nativeAd.getStarRating() == null) {
+            adView.getStarRatingView().setVisibility(View.INVISIBLE);
+        } else {
+            ((RatingBar) adView.getStarRatingView())
+                    .setRating(nativeAd.getStarRating().floatValue());
+            adView.getStarRatingView().setVisibility(View.VISIBLE);
+        }
+
+        if (nativeAd.getAdvertiser() == null) {
+            adView.getAdvertiserView().setVisibility(View.INVISIBLE);
+            Log.d(TAG, "INVISIBLE text: " + nativeAd.getAdvertiser());
+        } else {
+            ((TextView) adView.getAdvertiserView()).setText(nativeAd.getAdvertiser());
+            adView.getAdvertiserView().setVisibility(View.VISIBLE);
+            Log.d(TAG, "Visible text: " + nativeAd.getAdvertiser());
+        }
+
+        // This method tells the Google Mobile Ads SDK that you have finished populating your
+        // native ad view with this native ad. The SDK will populate the adView's MediaView
+        // with the media content from this native ad.
+        adView.setNativeAd(nativeAd);
+
+        // Get the video controller for the ad. One will always be provided, even if the ad doesn't
+        // have a video asset.
+        VideoController vc = nativeAd.getVideoController();
+
+        // Updates the UI to say whether or not this ad has a video asset.
+        if (vc.hasVideoContent()) {
+            // Create a new VideoLifecycleCallbacks object and pass it to the VideoController. The
+            // VideoController will call methods on this object when events occur in the video
+            // lifecycle.
+            vc.setVideoLifecycleCallbacks(new VideoController.VideoLifecycleCallbacks() {
+                @Override
+                public void onVideoEnd() {
+                    // Publishers should allow native ads to complete video playback before
+                    // refreshing or replacing them with another ad in the same UI location.
+                    super.onVideoEnd();
+                }
+            });
+        }
+    }
+
+    public void startAnimation(final ImageView mAnimCircle, float endDegree, int animDuration, long startDelay) {
         oa = ObjectAnimator.ofFloat(mAnimCircle, "rotation", 0f, endDegree);
         oa.setRepeatMode(ValueAnimator.RESTART);
         oa.setRepeatCount(8);
@@ -305,9 +434,7 @@ public class ProcessActivity extends AppCompatActivity {
         oa.setDuration(animDuration).start();
         oa.addListener(new Animator.AnimatorListener() {
             @Override
-            public void onAnimationStart(Animator animation) {
-
-            }
+            public void onAnimationStart(Animator animation) {}
 
             @Override
             public void onAnimationEnd(Animator animation) {
@@ -318,14 +445,10 @@ public class ProcessActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onAnimationCancel(Animator animation) {
-
-            }
+            public void onAnimationCancel(Animator animation) {}
 
             @Override
-            public void onAnimationRepeat(Animator animation) {
-
-            }
+            public void onAnimationRepeat(Animator animation) {}
         });
     }
 
@@ -356,7 +479,7 @@ public class ProcessActivity extends AppCompatActivity {
         });
     }
 
-    private void showProgress() {
+    public void showProgress() {
         speed = 180;
         new Thread(new Runnable() {
             @Override
@@ -419,7 +542,7 @@ public class ProcessActivity extends AppCompatActivity {
         }
     }
 
-    private void showAlertDialog() {
+    public void showAlertDialog() {
         // Build an AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(ProcessActivity.this);
 
@@ -434,12 +557,6 @@ public class ProcessActivity extends AppCompatActivity {
 
         // Create the alert dialog
         dialog = builder.create();
-
-        try {
-            PreferencesHelper.savePreference("countStarts1", count + 1);
-        } catch (InvalidClassException e) {
-            e.printStackTrace();
-        }
 
         // Set positive/yes button click listener
         btn_positive.setOnClickListener(new View.OnClickListener() {
@@ -496,22 +613,7 @@ public class ProcessActivity extends AppCompatActivity {
         btn_positive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Dismiss the alert dialog\
-                mSendmail = new Sendmail();
-
-                StringBuilder sb = new StringBuilder();
-                if (!TextUtils.isEmpty(mEtName.getText())) {
-                    sb.append("Name: " + mEtName.getText() + "\n");
-                }
-                if (!TextUtils.isEmpty(mEtEmail.getText())) {
-                    sb.append("Email: " + mEtEmail.getText() + "\n");
-                }
-                if (!TextUtils.isEmpty(mEtComment.getText())) {
-                    sb.append("Comment: " + mEtComment.getText());
-                }
-
-                mSendmail.sendMail(ProcessActivity.this, sb);
-                Log.d("TAG", "Positive btn - send mail!");
+                presenter.sendMail(mEtName, mEtEmail, mEtComment);
                 dialog.cancel();
                 Log.d("TAG", "Positive btn");
             }
@@ -522,21 +624,17 @@ public class ProcessActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onDestroy() {
+        if (unifiedNativeAd != null) {
+            unifiedNativeAd.destroy();
+        }
+        super.onDestroy();
+        mUnbinder.unbind();
+        App.get(this).getComponentsHolder().releaseActivityComponent(getClass());
     }
 
-    public void onClickGO(View view) {
-        startActivity(new Intent(ProcessActivity.this, ProcessActivityNew.class).putExtras(b));
+    @Inject
+    void setActivity(){
+        presenter.setActivity(this);
     }
-
-//    @Override
-//    protected void onDestroy() {
-//
-////        if ( mMoPubView != null ){
-////            mMoPubView.destroy();
-////        }
-//
-//        super.onDestroy();
-//    }
 }

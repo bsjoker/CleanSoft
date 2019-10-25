@@ -1,11 +1,11 @@
-package ru.alphanix.cleansoft;
+package ru.alphanix.cleansoft.App;
 
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
 import com.onesignal.OSNotification;
-import com.onesignal.OSNotificationAction;
 import com.onesignal.OSNotificationOpenResult;
 import com.onesignal.OneSignal;
 import com.yandex.metrica.YandexMetrica;
@@ -14,7 +14,12 @@ import com.yandex.metrica.YandexMetricaConfig;
 import org.json.JSONObject;
 
 import java.io.InvalidClassException;
-import java.util.Locale;
+
+import ru.alphanix.cleansoft.Utils.LocaleHelper;
+import ru.alphanix.cleansoft.boosting.BoostActivity;
+import ru.alphanix.cleansoft.mainMenu.MainMenuActivity;
+import ru.alphanix.cleansoft.Utils.PreferencesHelper;
+import ru.alphanix.cleansoft.load.LoadActivity;
 
 /**
  * Created by adm1n on 04.05.2017.
@@ -22,23 +27,27 @@ import java.util.Locale;
 
 public class App extends Application {
     private String API_key = "df3acd5b-15ac-4e93-98c7-fab0f1521c29";
+    private ComponentsHolder componentsHolder;
     private static App appInstance;
 
     public static App getInstance(){
         return appInstance;
+    }
+    public static App get(Context context){
+        return (App)context.getApplicationContext();
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        // OneSignal Initialization
-        OneSignal.startInit(this)
-                .setNotificationReceivedHandler(new ExampleNotificationReceivedHandler())
-                .setNotificationOpenedHandler(new ExampleNotificationOpenedHandler())
-                .inFocusDisplaying(OneSignal.OSInFocusDisplayOption.Notification)
-                .unsubscribeWhenNotificationsAreDisabled(true)
-                .init();
+//        // OneSignal Initialization
+//        OneSignal.startInit(this)
+//                .setNotificationReceivedHandler(new ExampleNotificationReceivedHandler())
+//                .setNotificationOpenedHandler(new ExampleNotificationOpenedHandler())
+//                .inFocusDisplaying(OneSignal.OSInFocusDisplayOption.Notification)
+//                .unsubscribeWhenNotificationsAreDisabled(true)
+//                .init();
 
         //Создание расширенной конфигурации библиотеки.
         YandexMetricaConfig config = YandexMetricaConfig.newConfigBuilder(API_key).build();
@@ -49,12 +58,24 @@ public class App extends Application {
 
         appInstance = this;
 
+        componentsHolder = new ComponentsHolder(this);
+        componentsHolder.init();
+
         try {
             PreferencesHelper.savePreference("isDeepLink", false);
             Log.i("OneSignalExample", "customkey set with value: " + PreferencesHelper.getSharedPreferences().getBoolean("isDeepLink", false));
         } catch (InvalidClassException e) {
             e.printStackTrace();
         }
+    }
+
+//    @Override
+//    protected void attachBaseContext(Context base) {
+//        super.attachBaseContext(LocaleHelper.onAttach(base, "en"));
+//    }
+
+    public ComponentsHolder getComponentsHolder() {
+        return componentsHolder;
     }
 
     private class ExampleNotificationReceivedHandler implements OneSignal.NotificationReceivedHandler {
