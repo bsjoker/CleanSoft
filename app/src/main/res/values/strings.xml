@@ -45,6 +45,23 @@
         <item>Tiếng việt</item>
     </string-array>
 
+    <string-array name="langLocaleArray">
+        <item>en</item>
+        <item>es</item>
+        <item>pt</item>
+        <item>ja</item>
+        <item>th</item>
+        <item>in</item>
+        <item>fr</item>
+        <item>zh</item>
+        <item>tr</item>
+        <item>ro</item>
+        <item>pl</item>
+        <item>ms</item>
+        <item>ko</item>
+        <item>vi</item>
+    </string-array>
+
     <!-- 3 Экраны Гориз. Графиков -->
     <string name="coolsystem2">System Temperature</string>
     <string name="boostMemory2">RAM Memory</string>
@@ -165,13 +182,15 @@ You can use this app to clear ram memory fast and easy, just in one tap.</string
     <string name="bannerID">ca-app-pub-3940256099942544/6300978111</string>
     <string name="bannerIDSysOpt">ca-app-pub-3940256099942544/6300978111</string>
     <string name="bannerIDSplit">ca-app-pub-3940256099942544/6300978111</string>
-
+    <string name="nativeADMOB_AD_UNIT_ID">ca-app-pub-3940256099942544/2247696110</string>
+    <string name="nativeADMOB_AD_UNIT_ID_finish">ca-app-pub-3940256099942544/2247696110</string>
     <string name="banner300x250">ca-app-pub-3940256099942544/6300978111</string>
 
     <string name="intersentialID">ca-app-pub-3940256099942544/1033173712</string>
     <string name="intersentialIDSysOpt">ca-app-pub-3940256099942544/1033173712</string>
     <string name="intersentialIDfirst">ca-app-pub-3940256099942544/1033173712</string>
 
+    <string name="ad_attribution">Ad</string>
     <string name="facebook_app_id">5656565656</string>
     <string name="fb_login_protocol_scheme">fb5656565656</string>
     <string name="pleaseWait">Please Wait…</string>

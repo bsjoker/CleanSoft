@@ -35,8 +35,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:orientation="vertical" />
+                android:orientation="vertical"/>
+
         </ScrollView>
+
+        <FrameLayout
+            android:id="@+id/fl_adplaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"/>
 
         <android.support.constraint.ConstraintLayout
             android:id="@+id/clCoolGraph"
