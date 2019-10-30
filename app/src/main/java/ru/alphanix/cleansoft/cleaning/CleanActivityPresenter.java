@@ -3,10 +3,7 @@ package ru.alphanix.cleansoft.cleaning;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -15,7 +12,6 @@ import ru.alphanix.cleansoft.Utils.ROM_Memory;
 
 public class CleanActivityPresenter {
     private final static String TAG = "CleanActivityPresenter";
-    private static final int REQUEST_CODE_PERMISSION_WRITE_EXTERNAL_STORAGE = 123;
     private CleanCacheFakeActivity activity;
     private Context context;
     private AppsListHelper appsListHelper;
@@ -23,7 +19,7 @@ public class CleanActivityPresenter {
 
     public CleanActivityPresenter(Context context) {
         this.context = context;
-        appsListHelper = new AppsListHelper(context);
+        appsListHelper = new AppsListHelper(context, "cache");
     }
 
     public void setActivity(CleanCacheFakeActivity activity) {
@@ -33,27 +29,9 @@ public class CleanActivityPresenter {
     }
 
     private void checkPermission() {
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(activity, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    REQUEST_CODE_PERMISSION_WRITE_EXTERNAL_STORAGE);
-            Log.i(TAG, "Request!");
-        } else {
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
             setPercentRAM(rom_memory);
             activity.fillListApps(appsListHelper.getAppNames(), appsListHelper.getPackageNames());
-            activity.clearCache();
-        }
-    }
-
-    public void onPermissionsResult(int[] grantResults) {
-        if (grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            setPercentRAM(rom_memory);
-            activity.fillListApps(appsListHelper.getAppNames(), appsListHelper.getPackageNames());
-            activity.clearCache();
-            Log.i(TAG, "Granted result WRITE_EXTERNAL_STORAGE!");
-        } else {
-            // permission denied
-            Log.i(TAG, "Denied result WRITE_EXTERNAL_STORAGE!");
         }
     }
 
@@ -80,7 +58,33 @@ public class CleanActivityPresenter {
         }
     }
 
-    public void killApps(ArrayList<String> packageNamesForKills) {
+    public void clearCacheApps(ArrayList<String> packageNamesForKills) {
         appsListHelper.killAppsFromList(packageNamesForKills);
     }
+
+//    void clearCache() {
+//        Context applicationContext = App.getInstance().getApplicationContext();
+//        File externalCacheDir = applicationContext.getExternalCacheDir();
+//        if (externalCacheDir != null) {
+//            File file = new File(externalCacheDir.getAbsolutePath().replace(applicationContext.getPackageName(), "com.google.android.youtube").toString());
+//            if (file.exists() && file.isDirectory()) {
+//                Log.d(TAG, "111:: ");
+//                deleteFile(file);
+//            }
+//        }
+//    }
+//
+//    public static boolean deleteFile(File file) {
+//        if (file.isDirectory()) {
+//            String[] list = file.list();
+//            if (list != null) {
+//                for (String file2 : list) {
+//                    if (!deleteFile(new File(file, file2))) {
+//                        return false;
+//                    }
+//                }
+//            }
+//        }
+//        return file.delete();
+//    }
 }

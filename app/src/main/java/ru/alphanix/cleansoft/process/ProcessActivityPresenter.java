@@ -5,10 +5,12 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.EditText;
 
+import java.io.File;
 import java.io.InvalidClassException;
 import java.util.Calendar;
 import java.util.Date;
 
+import ru.alphanix.cleansoft.App.App;
 import ru.alphanix.cleansoft.R;
 import ru.alphanix.cleansoft.Utils.PreferencesHelper;
 import ru.alphanix.cleansoft.widget.Sendmail;
@@ -65,6 +67,7 @@ public class ProcessActivityPresenter {
             case "cache":
                 mTitle = context.getResources().getString(R.string.rom);
                 mFinishText = context.getResources().getString(R.string.system_cleared);
+                clearCache(activity.getIntent().getStringArrayExtra("packagesForCleanCache"));
                 break;
         }
 
@@ -135,5 +138,33 @@ public class ProcessActivityPresenter {
 
         mSendmail.sendMail(activity, sb);
         Log.d("TAG", "Positive btn - send mail!");
+    }
+
+    private void clearCache(String[] appsForCleanCache) {
+        Context applicationContext = App.getInstance().getApplicationContext();
+        File externalCacheDir = applicationContext.getExternalCacheDir();
+        if (externalCacheDir != null) {
+            for (String appForCleanCache: appsForCleanCache) {
+                File file = new File(externalCacheDir.getAbsolutePath().replace(applicationContext.getPackageName(), appForCleanCache));
+                if (file.exists() && file.isDirectory()) {
+                    Log.d(TAG, "111:: " + appForCleanCache);
+                    deleteFile(file);
+                }
+            }
+        }
+    }
+
+    private static boolean deleteFile(File file) {
+        if (file.isDirectory()) {
+            String[] list = file.list();
+            if (list != null) {
+                for (String file2 : list) {
+                    if (!deleteFile(new File(file, file2))) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return file.delete();
     }
 }

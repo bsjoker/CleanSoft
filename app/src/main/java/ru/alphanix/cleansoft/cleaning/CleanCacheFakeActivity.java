@@ -5,9 +5,7 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.IPackageDataObserver;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -80,7 +78,7 @@ public class CleanCacheFakeActivity extends BaseActivity {
     private AdView mAdView;
 
     private Unbinder mUnbinder;
-    ArrayList<String> packageNamesForKills = new ArrayList<>();
+    ArrayList<String> packageNamesForCleanCache = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -109,31 +107,31 @@ public class CleanCacheFakeActivity extends BaseActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_CODE_PERMISSION_WRITE_EXTERNAL_STORAGE:
-                presenter.onPermissionsResult(grantResults);
-                return;
-        }
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        switch (requestCode) {
+//            case REQUEST_CODE_PERMISSION_WRITE_EXTERNAL_STORAGE:
+//                presenter.onPermissionsResult(grantResults);
+//                return;
+//        }
+//    }
 
     public void fillListApps(ArrayList<String> appNames, final ArrayList<String> packageNames) {
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_multiple_choice, appNames);
         lvApp.setAdapter(adapter);
         for (int i = 0; i < appNames.size(); i++) {
-            packageNamesForKills.add(packageNames.get(i));
+            packageNamesForCleanCache.add(packageNames.get(i));
             lvApp.setItemChecked(i, true);
         }
         lvApp.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 SparseBooleanArray chosen = ((ListView) parent).getCheckedItemPositions();
-                packageNamesForKills.clear();
+                packageNamesForCleanCache.clear();
                 for (int i = 0; i < chosen.size(); i++) {
                     if (chosen.valueAt(i)) {
-                        packageNamesForKills.add(packageNames.get(chosen.keyAt(i)));
+                        packageNamesForCleanCache.add(packageNames.get(chosen.keyAt(i)));
                     }
                 }
             }
@@ -180,11 +178,11 @@ public class CleanCacheFakeActivity extends BaseActivity {
     }
 
     public void onClickClean(View view) {
-        String[] stringApps = packageNamesForKills.toArray(new String[0]);
-        presenter.killApps(packageNamesForKills);
-        Bundle b = new Bundle();
-        b.putStringArray("appsKey", stringApps);
-        startActivity(new Intent(CleanCacheFakeActivity.this, ProcessActivity.class).putExtra("process", "cache").putExtra("packagesForKills", packageNamesForKills.size()).putExtras(b));
+        String[] stringApps = packageNamesForCleanCache.toArray(new String[0]);
+        //presenter.clearCacheApps(packageNamesForCleanCache);
+        //Bundle b = new Bundle();
+        //b.putStringArray("appsKey", stringApps);
+        startActivity(new Intent(CleanCacheFakeActivity.this, ProcessActivity.class).putExtra("process", "cache").putExtra("packagesForCleanCache", stringApps));
     }
 
     @Override
@@ -204,32 +202,6 @@ public class CleanCacheFakeActivity extends BaseActivity {
     private class CachePackageDataObserver extends IPackageDataObserver.Stub {
         public void onRemoveCompleted(String packageName, boolean succeeded) {
         }
-    }
-
-    void clearCache() {
-        Context applicationContext = App.getInstance().getApplicationContext();
-        File externalCacheDir = applicationContext.getExternalCacheDir();
-        if (externalCacheDir != null) {
-            File file = new File(externalCacheDir.getAbsolutePath().replace(applicationContext.getPackageName(), "com.google.android.youtube").toString());
-            if (file.exists() && file.isDirectory()) {
-                Log.d(TAG, "111:: " + file.getAbsolutePath());
-                deleteFile(file);
-            }
-        }
-    }
-
-    public static boolean deleteFile(File file) {
-        if (file.isDirectory()) {
-            String[] list = file.list();
-            if (list != null) {
-                for (String file2 : list) {
-                    if (!deleteFile(new File(file, file2))) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return file.delete();
     }
 
     @Inject

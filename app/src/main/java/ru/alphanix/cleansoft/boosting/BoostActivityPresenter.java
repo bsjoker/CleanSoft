@@ -17,7 +17,7 @@ class BoostActivityPresenter {
 
     public BoostActivityPresenter(Context context) {
         this.context = context;
-        appsListHelper = new AppsListHelper(context);
+        appsListHelper = new AppsListHelper(context, "");
     }
 
     public void setActivity(BoostActivity boostActivity) {

@@ -8,7 +8,9 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.util.SparseBooleanArray;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -34,6 +37,7 @@ import butterknife.Unbinder;
 import ru.alphanix.cleansoft.App.App;
 import ru.alphanix.cleansoft.MenuActivity;
 import ru.alphanix.cleansoft.Utils.LocaleHelper;
+import ru.alphanix.cleansoft.Utils.PreferencesHelper;
 import ru.alphanix.cleansoft.base.BaseActivity;
 import ru.alphanix.cleansoft.process.ProcessActivity;
 import ru.alphanix.cleansoft.R;
@@ -73,6 +77,7 @@ public class BoostActivity extends BaseActivity {
     private Unbinder mUnbinder;
     ArrayList<String> packageNamesForKills = new ArrayList<>();
     private AdView mAdView;
+    private Boolean isFinishLoad = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -105,7 +110,7 @@ public class BoostActivity extends BaseActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_multiple_choice, appNames);
         lvApp.setAdapter(adapter);
-        for ( int i=0; i < appNames.size(); i++) {
+        for (int i = 0; i < appNames.size(); i++) {
             packageNamesForKills.add(packageNames.get(i));
             lvApp.setItemChecked(i, true);
         }
@@ -127,11 +132,12 @@ public class BoostActivity extends BaseActivity {
 
     public void showProgress(ProgressBar pb, int delay, int duration, final int maxValue) {
         ObjectAnimator animation = ObjectAnimator.ofInt(pb, "progress", 0, maxValue);
-        switch (pb.getId()){
+        switch (pb.getId()) {
             case R.id.pb_horizontalCPUred:
                 animation.addListener(new Animator.AnimatorListener() {
                     @Override
-                    public void onAnimationStart(Animator animation) {}
+                    public void onAnimationStart(Animator animation) {
+                    }
 
                     @Override
                     public void onAnimationEnd(Animator animation) {
@@ -139,10 +145,12 @@ public class BoostActivity extends BaseActivity {
                     }
 
                     @Override
-                    public void onAnimationCancel(Animator animation) {}
+                    public void onAnimationCancel(Animator animation) {
+                    }
 
                     @Override
-                    public void onAnimationRepeat(Animator animation) {}
+                    public void onAnimationRepeat(Animator animation) {
+                    }
                 });
                 break;
         }
@@ -155,11 +163,11 @@ public class BoostActivity extends BaseActivity {
     public void setTextOnGraph(String value, String freeSpace, int padding_in_px) {
         tvPercentRAM.setText(value);
         tvSpaceRAM.setText(freeSpace);
-        llRAM.setPadding(padding_in_px,0,0, 0);
+        llRAM.setPadding(padding_in_px, 0, 0, 0);
         tvPercentRAM.setVisibility(View.VISIBLE);
         tvBoostRAM.setVisibility(View.VISIBLE);
         tvSpaceRAM.setVisibility(View.VISIBLE);
-
+        isFinishLoad = true;
     }
 
     public void onClickBoost(View view) {
@@ -179,17 +187,27 @@ public class BoostActivity extends BaseActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId()== R.id.action_menu){
+        if (item.getItemId() == R.id.action_menu) {
             startActivity(new Intent(BoostActivity.this, MenuActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
+    public void onBackPressed() {
+        if (isFinishLoad) {
+            super.onBackPressed();
+        } else {
+            Log.d(TAG, "BackButton" + isFinishLoad);
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "OnDestroy");
         mUnbinder.unbind();
-        if(isFinishing()){
+        if (isFinishing()) {
             App.get(this).getComponentsHolder().releaseActivityComponent(getClass());
         }
     }

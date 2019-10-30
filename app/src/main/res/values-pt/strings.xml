@@ -165,4 +165,5 @@ You can use this app to clear ram memory fast and easy, just in one tap.</string
     <string name="sys_optimization">Otimização do Sistema</string>
     <string name="btn_go">GO</string>
     <string name="press_for_exit">Press once again to exit!</string>
+    <string name="mb">Mb</string>
 </resources>

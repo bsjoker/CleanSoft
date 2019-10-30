@@ -1,11 +1,15 @@
 package ru.alphanix.cleansoft.mainMenu;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -26,17 +30,36 @@ public class MainMenuActivityPresenter {
     private final static String TAG = "MainMenuPresenter";
 
     private MainMenuActivity activity;
-
+    private static final int REQUEST_CODE_PERMISSION_WRITE_EXTERNAL_STORAGE = 123;
     private Date currentDate, currentDatePlus4Hour;
     private int temp = 0;
-    IntentFilter intentfilter;
-    float batteryTemp;
+    private IntentFilter intentfilter;
+    private float batteryTemp;
 
     public void setActivity(MainMenuActivity mainMenuActivity) {
         this.activity = mainMenuActivity;
         getCpuTemp();
         setPercentRAM(new RAM_Memory(activity));
         setPercentROM(new ROM_Memory(activity));
+        checkPermission();
+    }
+
+    private void checkPermission() {
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_CODE_PERMISSION_WRITE_EXTERNAL_STORAGE);
+            Log.i(TAG, "Request!");
+        }
+    }
+
+    public void onPermissionsResult(int[] grantResults) {
+        if (grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Log.i(TAG, "Granted result WRITE_EXTERNAL_STORAGE!");
+        } else {
+            // permission denied
+            Log.i(TAG, "Denied result WRITE_EXTERNAL_STORAGE!");
+        }
     }
 
     public void checkTimeDelayAfterClear() {

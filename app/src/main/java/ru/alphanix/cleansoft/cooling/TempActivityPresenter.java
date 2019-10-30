@@ -24,7 +24,7 @@ public class TempActivityPresenter {
     public TempActivityPresenter(Context context) {
         this.context = context;
         Log.d(TAG, "Presenter created!");
-        appsListHelper = new AppsListHelper(context);
+        appsListHelper = new AppsListHelper(context, "");
     }
 
     public void setActivity(TempActivity tempActivity) {

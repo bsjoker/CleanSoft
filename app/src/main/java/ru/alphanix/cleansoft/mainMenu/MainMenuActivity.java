@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -67,6 +68,7 @@ public class MainMenuActivity extends BaseActivity implements View.OnClickListen
     MainMenuActivityPresenter presenter;
 
     private final static String TAG = "MainMenuActivity";
+    private static final int REQUEST_CODE_PERMISSION_WRITE_EXTERNAL_STORAGE = 123;
     private static long back_pressed;
 
     @BindView(R.id.pb_verticalCPUred)
@@ -251,10 +253,7 @@ public class MainMenuActivity extends BaseActivity implements View.OnClickListen
                                 .build();
                         form.load();
                     }
-                } else {
-
                 }
-
             }
 
             @Override
@@ -270,6 +269,15 @@ public class MainMenuActivity extends BaseActivity implements View.OnClickListen
         setSupportActionBar(mActionBarToolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         tvTitle.setText(getResources().getString(R.string.app_name));
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_PERMISSION_WRITE_EXTERNAL_STORAGE:
+                presenter.onPermissionsResult(grantResults);
+                break;
+        }
     }
 
     public void switchOffBoost() {

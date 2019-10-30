@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -74,6 +75,7 @@ public class TempActivity extends BaseActivity {
 
     private AdView mAdView;
     private int t=0;
+    private boolean isFinishLoad = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -107,22 +109,6 @@ public class TempActivity extends BaseActivity {
     }
 
     public void fillListApps(ArrayList<String> appNames, final ArrayList<String> packageNames) {
-//
-//        PackageManager pm = getApplicationContext().getPackageManager();
-//        packagesRun = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-//
-//        for (ApplicationInfo packageInfo : packagesRun) {
-//            boolean system = (packageInfo.flags & packageInfo.FLAG_SYSTEM) > 0;
-//            boolean stoped = (packageInfo.flags & packageInfo.FLAG_STOPPED) > 0;
-//            //system apps! get out
-//            if (!stoped && !system) {
-//
-//                packageNames.add(packageInfo.packageName.toString());
-//                appNames.add(packageInfo.loadLabel(pm).toString());
-//                //am.killBackgroundProcesses(packageInfo.packageName);
-//            }
-//        }
-
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_multiple_choice, appNames);
         lvApp.setAdapter(adapter);
@@ -185,6 +171,7 @@ public class TempActivity extends BaseActivity {
         tvCPUcool.setVisibility(View.VISIBLE);
         tvCoolSystemCPU.setVisibility(View.VISIBLE);
         llCoolCPU.setPadding(padding_in_px,0,0, 0);
+        isFinishLoad = true;
     }
 
     @Override
@@ -208,6 +195,15 @@ public class TempActivity extends BaseActivity {
         Bundle b = new Bundle();
         b.putStringArray("appsKey", stringApps);
         startActivity(new Intent(TempActivity.this, ProcessActivity.class).putExtra("process", "cool").putExtra("packagesForKills", packageNamesForKills.size()).putExtras(b));
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isFinishLoad) {
+            super.onBackPressed();
+        } else {
+            Log.d(TAG, "BackButton" + isFinishLoad);
+        }
     }
 
     @Override
